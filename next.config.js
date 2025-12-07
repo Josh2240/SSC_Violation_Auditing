@@ -8,6 +8,10 @@ const nextConfig = {
     DB_NAME: process.env.DB_NAME,
     JWT_SECRET: process.env.JWT_SECRET,
   },
+  // Disable image optimization for Electron (optional)
+  images: {
+    unoptimized: true,
+  },
 }
 
 module.exports = nextConfig
