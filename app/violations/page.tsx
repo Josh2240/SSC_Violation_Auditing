@@ -146,27 +146,27 @@ export default function ViolationsPage() {
   return (
     <Layout>
       <div className="px-4 py-6 sm:px-0">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Violations</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Violations</h1>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="w-full sm:w-auto bg-blue-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-blue-700 text-sm sm:text-base font-medium touch-target"
           >
             <i className="bi bi-plus-circle mr-2"></i>
             Report Violation
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow mb-6 p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg shadow mb-6 p-3 sm:p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <input
               type="text"
-              placeholder="Search by violation #, student ID, or name..."
+              placeholder="Search by violation # or student..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
               }}
-              className="px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-target"
             />
             <select
               value={statusFilter}
@@ -174,7 +174,7 @@ export default function ViolationsPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-target"
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
@@ -188,7 +188,7 @@ export default function ViolationsPage() {
                 setCourseFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-target"
             >
               <option value="">All Departments</option>
               <option value="BSCRIM">BSCRIM</option>
