@@ -11,6 +11,19 @@ function generateViolationNumber(): string {
   return `${prefix}-${timestamp}-${random}`;
 }
 
+// Calculate offense count for a student
+// Returns a count from 1-3, where 3 is the maximum
+async function calculateOffenseCount(studentId: number): Promise<number> {
+  const result = await query(
+    'SELECT COUNT(*) as violation_count FROM violations WHERE student_id = ?',
+    [studentId]
+  ) as any[];
+  
+  const violationCount = result[0]?.violation_count || 0;
+  // Cap at 3, minimum 1
+  return Math.min(Math.max(violationCount + 1, 1), 3);
+}
+
 // GET all violations
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +32,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || '';
+    const course = searchParams.get('course') || '';
     const studentId = searchParams.get('student_id') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -46,6 +60,10 @@ export async function GET(request: NextRequest) {
       sql += ' AND v.status = ?';
       params.push(status);
     }
+    if (course) {
+      sql += ' AND s.course = ?';
+      params.push(course);
+    }
     if (studentId) {
       sql += ' AND v.student_id = ?';
       params.push(studentId);
@@ -71,6 +89,10 @@ export async function GET(request: NextRequest) {
     if (status) {
       countSql += ' AND v.status = ?';
       countParams.push(status);
+    }
+    if (course) {
+      countSql += ' AND s.course = ?';
+      countParams.push(course);
     }
     if (studentId) {
       countSql += ' AND v.student_id = ?';
@@ -135,10 +157,13 @@ export async function POST(request: NextRequest) {
 
     const violation_number = generateViolationNumber();
 
+    // Calculate offense count for this student
+    const offenseCount = await calculateOffenseCount(student_id);
+
     const result = await query(
       `INSERT INTO violations 
-       (violation_number, student_id, violation_type_id, reported_by, incident_date, incident_time, location, description, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+       (violation_number, student_id, violation_type_id, reported_by, incident_date, incident_time, location, description, status, offense_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
       [
         violation_number,
         student_id,
@@ -148,6 +173,7 @@ export async function POST(request: NextRequest) {
         incident_time || null,
         location || null,
         description,
+        offenseCount,
       ]
     ) as any;
 
@@ -159,14 +185,14 @@ export async function POST(request: NextRequest) {
       record_id: violationId,
       action: 'INSERT',
       user_id: user.id,
-      new_values: { ...data, violation_number, reported_by: user.id },
+      new_values: { ...data, violation_number, reported_by: user.id, offense_count: offenseCount },
       ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
       user_agent: request.headers.get('user-agent') || undefined,
     });
 
     return NextResponse.json({
       success: true,
-      violation: { id: violationId, violation_number, ...data },
+      violation: { id: violationId, violation_number, offense_count: offenseCount, ...data },
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {

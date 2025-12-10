@@ -26,6 +26,7 @@ interface Violation {
   description?: string;
   status?: string;
   resolution_notes?: string;
+  offense_count?: number;
 }
 
 interface ViolationFormProps {
@@ -49,6 +50,7 @@ export default function ViolationForm({ violation, onClose }: ViolationFormProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchStudent, setSearchStudent] = useState('');
+  const [offenseCount, setOffenseCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetchViolationTypes();
@@ -63,6 +65,9 @@ export default function ViolationForm({ violation, onClose }: ViolationFormProps
         status: violation.status || 'pending',
         resolution_notes: violation.resolution_notes || '',
       });
+      setOffenseCount(violation.offense_count || null);
+    } else {
+      setOffenseCount(null);
     }
   }, [violation]);
 
@@ -91,6 +96,23 @@ export default function ViolationForm({ violation, onClose }: ViolationFormProps
       setStudents(data.students || []);
     } catch (error) {
       console.error('Error fetching students:', error);
+    }
+  };
+
+  // Calculate offense count for selected student
+  const calculateOffenseCount = async (studentId: string) => {
+    if (!studentId) {
+      setOffenseCount(null);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/students/${studentId}`);
+      const data = await response.json();
+      const violationCount = data.student?.violation_count || 0;
+      // Cap at 3, minimum 1 (this is the next offense number)
+      setOffenseCount(Math.min(Math.max(violationCount + 1, 1), 3));
+    } catch (error) {
+      console.error('Error calculating offense count:', error);
     }
   };
 
@@ -178,9 +200,11 @@ export default function ViolationForm({ violation, onClose }: ViolationFormProps
                             key={student.id}
                             type="button"
                             onClick={() => {
-                              setFormData({ ...formData, student_id: student.id.toString() });
+                              const studentId = student.id.toString();
+                              setFormData({ ...formData, student_id: studentId });
                               setSearchStudent(`${student.student_id} - ${student.first_name} ${student.last_name}`);
                               setStudents([]);
+                              calculateOffenseCount(studentId);
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
                           >
@@ -214,6 +238,20 @@ export default function ViolationForm({ violation, onClose }: ViolationFormProps
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Offense Count
+                </label>
+                <div className={`w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-lg font-semibold ${offenseCount === 3 ? 'text-red-600' : offenseCount === 2 ? 'text-orange-600' : 'text-green-600'}`}>
+                  {violation ? (
+                    <>Offense #{offenseCount || '-'}</>
+                  ) : offenseCount ? (
+                    <>Offense #{offenseCount}</>
+                  ) : (
+                    <>Select a student</>
+                  )}
+                </div>
               </div>
             </div>
 

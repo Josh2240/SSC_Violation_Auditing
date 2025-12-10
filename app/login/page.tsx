@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,9 +43,19 @@ export default function LoginPage() {
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/images/552358563_780630158154517_6126058971160016074_n.jpg"
+                alt="Supreme Student Council Logo"
+                width={80}
+                height={80}
+                className="rounded-lg"
+              />
+            </div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               PCLU
             </h1>
+            <p className="text-sm text-gray-500 mb-1">Supreme Student Council</p>
             <h2 className="text-xl text-gray-600">
               Student Violation Audit System
             </h2>
@@ -95,11 +106,6 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>Default credentials: admin / admin123</p>
-            <p className="mt-2 text-xs">Please change the default password after first login</p>
-          </div>
         </div>
       </div>
     </div>

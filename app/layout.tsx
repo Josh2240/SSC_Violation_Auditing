@@ -18,6 +18,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link
+          rel="icon"
+          href="/images/552358563_780630158154517_6126058971160016074_n.jpg"
+          type="image/jpeg"
+        />
+        <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
         />

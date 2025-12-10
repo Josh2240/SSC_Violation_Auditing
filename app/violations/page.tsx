@@ -17,6 +17,7 @@ interface Violation {
   incident_date: string;
   status: string;
   reported_by_name: string;
+  offense_count?: number;
 }
 
 export default function ViolationsPage() {
@@ -25,6 +26,7 @@ export default function ViolationsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingViolation, setEditingViolation] = useState<Violation | null>(null);
   const [page, setPage] = useState(1);
@@ -57,6 +59,9 @@ export default function ViolationsPage() {
       if (statusFilter) {
         params.append('status', statusFilter);
       }
+      if (courseFilter) {
+        params.append('course', courseFilter);
+      }
 
       const response = await fetch(`/api/violations?${params}`);
       if (!response.ok) {
@@ -71,7 +76,7 @@ export default function ViolationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter, page]);
+  }, [debouncedSearch, statusFilter, courseFilter, page]);
 
   useEffect(() => {
     fetchViolations();
@@ -153,7 +158,7 @@ export default function ViolationsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow mb-6 p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               type="text"
               placeholder="Search by violation #, student ID, or name..."
@@ -176,6 +181,23 @@ export default function ViolationsPage() {
               <option value="under_review">Under Review</option>
               <option value="resolved">Resolved</option>
               <option value="dismissed">Dismissed</option>
+            </select>
+            <select
+              value={courseFilter}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setPage(1);
+              }}
+              className="px-4 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Departments</option>
+              <option value="BSCRIM">BSCRIM</option>
+              <option value="BSMT">BSMT</option>
+              <option value="BSIT">BSIT</option>
+              <option value="BSBA">BSBA</option>
+              <option value="BSHM">BSHM</option>
+              <option value="BSTM">BSTM</option>
+              <option value="BSED">BSED</option>
             </select>
           </div>
         </div>
@@ -240,6 +262,9 @@ export default function ViolationsPage() {
                         Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Offense #
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Severity
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -259,7 +284,7 @@ export default function ViolationsPage() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {violations.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                        <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                           No violations found
                         </td>
                       </tr>
@@ -281,6 +306,19 @@ export default function ViolationsPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {violation.violation_type_name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-3 py-1 inline-flex text-xs font-bold rounded-full ${
+                                violation.offense_count === 3
+                                  ? 'bg-red-100 text-red-800'
+                                  : violation.offense_count === 2
+                                  ? 'bg-orange-100 text-orange-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}
+                            >
+                              #{violation.offense_count || '-'}
+                            </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span

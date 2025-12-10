@@ -59,12 +59,33 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
     try {
       const url = student ? `/api/students/${student.id}` : '/api/students';
       const method = student ? 'PUT' : 'POST';
-      const body = student ? formData : { ...formData, student_id: formData.student_id };
+      
+      // Build the body object, only including fields that have values
+      const bodyData: any = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        course: formData.course || null,
+        year_level: formData.year_level || null,
+        section: formData.section || null,
+      };
+
+      // For new students, include optional fields
+      if (!student) {
+        bodyData.student_id = formData.student_id || null;
+        bodyData.middle_name = formData.middle_name || null;
+        bodyData.email = formData.email || null;
+        bodyData.phone = formData.phone || null;
+      } else {
+        // For updates, only include fields that have changed or are being cleared
+        bodyData.middle_name = formData.middle_name || null;
+        bodyData.email = formData.email || null;
+        bodyData.phone = formData.phone || null;
+      }
 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify(bodyData),
       });
 
       const data = await response.json();
@@ -107,13 +128,12 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student ID {!student && '*'}
+                  Student ID (Optional)
                 </label>
                 <input
                   type="text"
                   value={formData.student_id}
                   onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
-                  required={!student}
                   disabled={!!student}
                   className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                 />
@@ -122,12 +142,20 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Course
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.course}
                   onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                   className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
+                  <option value="">Select course/department</option>
+                  <option value="BSCRIM">BSCRIM</option>
+                  <option value="BSMT">BSMT</option>
+                  <option value="BSIT">BSIT</option>
+                  <option value="BSBA">BSBA</option>
+                  <option value="BSHM">BSHM</option>
+                  <option value="BSTM">BSTM</option>
+                  <option value="BSED">BSED</option>
+                </select>
               </div>
             </div>
 
@@ -146,7 +174,7 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Middle Name
+                  Middle Name (Optional)
                 </label>
                 <input
                   type="text"
@@ -194,7 +222,7 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
+                  Phone (Optional)
                 </label>
                 <input
                   type="tel"
@@ -207,7 +235,7 @@ export default function StudentForm({ student, onClose }: StudentFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Email (Optional)
               </label>
               <input
                 type="email"

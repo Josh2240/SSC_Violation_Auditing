@@ -4,6 +4,16 @@ import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
 
+interface AnalyticsData {
+  totalViolations: number;
+  pendingViolations: number;
+  resolvedViolations: number;
+  violatingStudents: number;
+  monthlyData: Array<{ month: string; violations: number; students: number }>;
+  departmentStats: Array<{ course: string; violations: number; students: number }>;
+  topOffenders: Array<{ id: number; name: string; violationCount: number }>;
+}
+
 interface Stats {
   totalViolations: number;
   pendingViolations: number;
@@ -12,25 +22,42 @@ interface Stats {
   recentViolations: any[];
 }
 
+const DEPARTMENTS = [
+  { code: 'BSCRIM', name: 'Criminology' },
+  { code: 'BSMT', name: 'Marine Transportation' },
+  { code: 'BSIT', name: 'Information Technology' },
+  { code: 'BSBA', name: 'Business Administration' },
+  { code: 'BSHM', name: 'Hotel Management' },
+  { code: 'BSTM', name: 'Tourism Management' },
+  { code: 'BSED', name: 'Education' },
+];
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reportType, setReportType] = useState('yearly');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedDept, setSelectedDept] = useState('');
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchData();
+  }, [reportType, selectedMonth, selectedDept]);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const [violationsRes, studentsRes, recentRes] = await Promise.all([
+      const [violationsRes, studentsRes, recentRes, analyticsRes] = await Promise.all([
         fetch('/api/violations?limit=1000'),
         fetch('/api/students?limit=1'),
-        fetch('/api/violations?limit=5'),
+        fetch('/api/violations?limit=10'),
+        fetch(`/api/analytics?type=${reportType}${reportType === 'monthly' ? `&month=${selectedMonth}` : ''}${reportType === 'department' ? `&department=${selectedDept}` : ''}`),
       ]);
 
       const violationsData = await violationsRes.json();
       const studentsData = await studentsRes.json();
       const recentData = await recentRes.json();
+      const analyticsJSON = await analyticsRes.json();
 
       const violations = violationsData.violations || [];
       const totalViolations = violations.length;
@@ -44,11 +71,22 @@ export default function DashboardPage() {
         totalStudents: studentsData.pagination?.total || 0,
         recentViolations: recentData.violations || [],
       });
+
+      setAnalyticsData(analyticsJSON);
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getMonthName = (month: number) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
+  };
+
+  const getDepartmentName = (code: string) => {
+    return DEPARTMENTS.find(d => d.code === code)?.name || code;
   };
 
   if (loading) {
@@ -68,6 +106,61 @@ export default function DashboardPage() {
       <div className="px-4 py-6 sm:px-0">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
 
+        {/* Report Type Selector */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Report Settings</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+              <select
+                value={reportType}
+                onChange={(e) => setReportType(e.target.value)}
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="yearly">Yearly Report</option>
+                <option value="monthly">Monthly Report</option>
+                <option value="department">Department Report</option>
+              </select>
+            </div>
+
+            {reportType === 'monthly' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                    <option key={month} value={month}>
+                      {getMonthName(month)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {reportType === 'department' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Department</label>
+                <select
+                  value={selectedDept}
+                  onChange={(e) => setSelectedDept(e.target.value)}
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">-- All Departments --</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.code} value={dept.code}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -107,17 +200,90 @@ export default function DashboardPage() {
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                <i className="bi bi-people text-2xl text-purple-600"></i>
+              <div className="flex-shrink-0 bg-red-100 rounded-lg p-3">
+                <i className="bi bi-exclamation-circle text-2xl text-red-600"></i>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Students</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.totalStudents || 0}</p>
+                <p className="text-sm font-medium text-gray-500">Violating Students</p>
+                <p className="text-2xl font-semibold text-gray-900">{analyticsData?.violatingStudents || 0}</p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Monthly Violations Trend */}
+        {reportType === 'yearly' && analyticsData?.monthlyData && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Monthly Violations Trend</h2>
+            <div className="space-y-4">
+              {analyticsData.monthlyData.map((data, index) => (
+                <div key={index} className="flex items-center">
+                  <div className="w-16 text-sm font-medium text-gray-700">{data.month}</div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-6">
+                    <div
+                      className="bg-blue-600 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                      style={{ width: `${Math.min((data.violations / 10) * 100, 100)}%` }}
+                    >
+                      {data.violations > 0 ? data.violations : ''}
+                    </div>
+                  </div>
+                  <div className="w-32 text-right text-sm text-gray-600">
+                    {data.violations} violations, {data.students} students
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Department Statistics */}
+        {analyticsData?.departmentStats && analyticsData.departmentStats.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              {reportType === 'department' ? 'Department Insights' : 'Department Breakdown'}
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Violating Students
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Violations
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Avg Per Student
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {analyticsData.departmentStats.map((dept, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {getDepartmentName(dept.course)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {dept.students}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {dept.violations}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {(dept.violations / dept.students).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Violations */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Recent Violations</h2>

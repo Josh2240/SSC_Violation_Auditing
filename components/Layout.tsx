@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface User {
   id: number;
@@ -75,7 +76,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-800">PCLU Violation System</h1>
+                <Image
+                  src="/images/552358563_780630158154517_6126058971160016074_n.jpg"
+                  alt="Supreme Student Council Logo"
+                  width={40}
+                  height={40}
+                  className="mr-3"
+                />
+                <div>
+                  <h1 className="text-base font-bold text-gray-800 leading-tight">PCLU Violation System</h1>
+                  <p className="text-xs text-gray-500">Supreme Student Council</p>
+                </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navItems.map((item) => (

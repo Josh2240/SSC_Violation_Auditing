@@ -20,7 +20,18 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ student: students[0] });
+    // Get violation count for this student
+    const violationResult = await query(
+      'SELECT COUNT(*) as violation_count FROM violations WHERE student_id = ?',
+      [params.id]
+    ) as any[];
+
+    const student = {
+      ...students[0],
+      violation_count: violationResult[0]?.violation_count || 0,
+    };
+
+    return NextResponse.json({ student });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -52,11 +63,36 @@ export async function PUT(
 
     const { first_name, last_name, middle_name, email, phone, course, year_level, section } = data;
 
+    // Validate required fields
+    if (!first_name || !first_name.trim()) {
+      return NextResponse.json(
+        { error: 'First name is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!last_name || !last_name.trim()) {
+      return NextResponse.json(
+        { error: 'Last name is required' },
+        { status: 400 }
+      );
+    }
+
     await query(
       `UPDATE students 
        SET first_name = ?, last_name = ?, middle_name = ?, email = ?, phone = ?, course = ?, year_level = ?, section = ?
        WHERE id = ?`,
-      [first_name, last_name, middle_name || null, email || null, phone || null, course || null, year_level || null, section || null, params.id]
+      [
+        first_name.trim(),
+        last_name.trim(),
+        middle_name && middle_name.trim() ? middle_name.trim() : null,
+        email && email.trim() ? email.trim() : null,
+        phone && phone.trim() ? phone.trim() : null,
+        course && course.trim() ? course.trim() : null,
+        year_level && year_level.trim() ? year_level.trim() : null,
+        section && section.trim() ? section.trim() : null,
+        params.id,
+      ]
     );
 
     // Create audit log
@@ -76,6 +112,7 @@ export async function PUT(
     if (error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    console.error('Update student error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

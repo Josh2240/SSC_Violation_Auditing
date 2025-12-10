@@ -60,26 +60,46 @@ export async function POST(request: NextRequest) {
 
     const { student_id, first_name, last_name, middle_name, email, phone, course, year_level, section } = data;
 
-    if (!student_id || !first_name || !last_name) {
+    // Validate required fields
+    if (!first_name || !first_name.trim()) {
       return NextResponse.json(
-        { error: 'Student ID, first name, and last name are required' },
+        { error: 'First name is required' },
         { status: 400 }
       );
     }
 
-    // Check if student ID already exists
-    const existing = await query('SELECT id FROM students WHERE student_id = ?', [student_id]) as any[];
-    if (existing.length > 0) {
+    if (!last_name || !last_name.trim()) {
       return NextResponse.json(
-        { error: 'Student ID already exists' },
+        { error: 'Last name is required' },
         { status: 400 }
       );
+    }
+
+    // If student_id provided, check if it already exists
+    if (student_id && student_id.trim()) {
+      const existing = await query('SELECT id FROM students WHERE student_id = ?', [student_id.trim()]) as any[];
+      if (existing.length > 0) {
+        return NextResponse.json(
+          { error: 'Student ID already exists' },
+          { status: 400 }
+        );
+      }
     }
 
     const result = await query(
       `INSERT INTO students (student_id, first_name, last_name, middle_name, email, phone, course, year_level, section)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [student_id, first_name, last_name, middle_name || null, email || null, phone || null, course || null, year_level || null, section || null]
+      [
+        student_id && student_id.trim() ? student_id.trim() : null,
+        first_name.trim(),
+        last_name.trim(),
+        middle_name && middle_name.trim() ? middle_name.trim() : null,
+        email && email.trim() ? email.trim() : null,
+        phone && phone.trim() ? phone.trim() : null,
+        course && course.trim() ? course.trim() : null,
+        year_level && year_level.trim() ? year_level.trim() : null,
+        section && section.trim() ? section.trim() : null,
+      ]
     ) as any;
 
     const studentId = result.insertId;
