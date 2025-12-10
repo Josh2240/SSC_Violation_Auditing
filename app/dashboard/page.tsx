@@ -35,6 +35,7 @@ const DEPARTMENTS = [
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [departmentCounts, setDepartmentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [reportType, setReportType] = useState('yearly');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -47,17 +48,19 @@ export default function DashboardPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [violationsRes, studentsRes, recentRes, analyticsRes] = await Promise.all([
+      const [violationsRes, studentsRes, recentRes, analyticsRes, deptCountsRes] = await Promise.all([
         fetch('/api/violations?limit=1000'),
         fetch('/api/students?limit=1'),
         fetch('/api/violations?limit=10'),
         fetch(`/api/analytics?type=${reportType}${reportType === 'monthly' ? `&month=${selectedMonth}` : ''}${reportType === 'department' ? `&department=${selectedDept}` : ''}`),
+        fetch('/api/students/department-counts'),
       ]);
 
       const violationsData = await violationsRes.json();
       const studentsData = await studentsRes.json();
       const recentData = await recentRes.json();
       const analyticsJSON = await analyticsRes.json();
+      const deptCountsJSON = await deptCountsRes.json();
 
       const violations = violationsData.violations || [];
       const totalViolations = violations.length;
@@ -71,6 +74,15 @@ export default function DashboardPage() {
         totalStudents: studentsData.pagination?.total || 0,
         recentViolations: recentData.violations || [],
       });
+
+      // normalize department counts into a map for easy lookup
+      const deptMap: Record<string, number> = {};
+      if (deptCountsJSON?.data && Array.isArray(deptCountsJSON.data)) {
+        deptCountsJSON.data.forEach((r: any) => {
+          if (r.course) deptMap[r.course] = Number(r.student_count) || 0;
+        });
+      }
+      setDepartmentCounts(deptMap);
 
       setAnalyticsData(analyticsJSON);
     } catch (error) {
@@ -263,19 +275,19 @@ export default function DashboardPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {analyticsData.departmentStats.map((dept, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {getDepartmentName(dept.course)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {dept.students}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {dept.violations}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {(dept.violations / dept.students).toFixed(2)}
-                      </td>
-                    </tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {getDepartmentName(dept.course)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {departmentCounts[dept.course] ?? dept.students}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {dept.violations}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {(dept.violations / ((departmentCounts[dept.course] ?? dept.students) || 1)).toFixed(2)}
+                        </td>
+                      </tr>
                   ))}
                 </tbody>
               </table>

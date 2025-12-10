@@ -18,7 +18,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -72,96 +71,60 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <Image
-                src="/images/552358563_780630158154517_6126058971160016074_n.jpg"
-                alt="Supreme Student Council Logo"
-                width={36}
-                height={36}
-                className="w-8 h-8 sm:w-10 sm:h-10"
-              />
-              <div className="hidden sm:block">
-                <h1 className="text-sm sm:text-base font-bold text-gray-800 leading-tight">PCLU Violation System</h1>
-                <p className="text-xs text-gray-500">Supreme Student Council</p>
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <Image
+                  src="/images/552358563_780630158154517_6126058971160016074_n.jpg"
+                  alt="Supreme Student Council Logo"
+                  width={40}
+                  height={40}
+                  className="mr-3"
+                />
+                <div>
+                  <h1 className="text-base font-bold text-gray-800 leading-tight">PCLU Violation System</h1>
+                  <p className="text-xs text-gray-500">Supreme Student Council</p>
+                </div>
               </div>
-              <div className="block sm:hidden">
-                <h1 className="text-xs font-bold text-gray-800">PCLU</h1>
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                      pathname === item.href
+                        ? 'border-blue-500 text-gray-900'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <i className={`bi ${item.icon} mr-2`}></i>
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
-            
-            <div className="hidden sm:flex sm:space-x-2 lg:space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`inline-flex items-center px-2 lg:px-3 py-1 border-b-2 text-xs lg:text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <i className={`bi ${item.icon} hidden lg:inline mr-1 lg:mr-2`}></i>
-                  <span className="hidden md:inline">{item.label}</span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden sm:flex sm:items-center sm:gap-2">
-                <span className="text-xs sm:text-sm text-gray-700">{user.full_name}</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 sm:py-1 rounded">
+            <div className="flex items-center">
+              <div className="flex items-center mr-4">
+                <span className="text-sm text-gray-700 mr-2">{user.full_name}</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                   {user.role}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-md text-sm transition-colors touch-target"
-                title="Logout"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
-                <i className="bi bi-box-arrow-right"></i>
-              </button>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="sm:hidden p-2 rounded-md text-gray-500 hover:text-gray-700"
-              >
-                <i className="bi bi-list text-lg"></i>
+                <i className="bi bi-box-arrow-right mr-1"></i>
+                Logout
               </button>
             </div>
           </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="sm:hidden border-t border-gray-200 py-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    pathname === item.href
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <i className={`bi ${item.icon} mr-2`}></i>
-                  {item.label}
-                </Link>
-              ))}
-              <div className="px-3 py-2 border-t border-gray-200 mt-2">
-                <p className="text-xs text-gray-500">{user.full_name}</p>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded inline-block">
-                  {user.role}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-4 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {children}
       </main>
     </div>

@@ -27,6 +27,7 @@ export default function ViolationsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
+  const [departmentCounts, setDepartmentCounts] = useState<Record<string, number>>({});
   const [showForm, setShowForm] = useState(false);
   const [editingViolation, setEditingViolation] = useState<Violation | null>(null);
   const [page, setPage] = useState(1);
@@ -81,6 +82,28 @@ export default function ViolationsPage() {
   useEffect(() => {
     fetchViolations();
   }, [fetchViolations]);
+
+  useEffect(() => {
+    // fetch students per department to show counts in the course dropdown
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/students/department-counts');
+        if (!res.ok) return;
+        const json = await res.json();
+        const map: Record<string, number> = {};
+        if (json?.data && Array.isArray(json.data)) {
+          json.data.forEach((r: any) => {
+            if (r.course) map[r.course] = Number(r.student_count) || 0;
+          });
+        }
+        if (mounted) setDepartmentCounts(map);
+      } catch (err) {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleEdit = (violation: Violation) => {
     setEditingViolation(violation);
@@ -191,13 +214,13 @@ export default function ViolationsPage() {
               className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-target"
             >
               <option value="">All Departments</option>
-              <option value="BSCRIM">BSCRIM</option>
-              <option value="BSMT">BSMT</option>
-              <option value="BSIT">BSIT</option>
-              <option value="BSBA">BSBA</option>
-              <option value="BSHM">BSHM</option>
-              <option value="BSTM">BSTM</option>
-              <option value="BSED">BSED</option>
+              <option value="BSCRIM">BSCRIM ({departmentCounts['BSCRIM'] ?? 0})</option>
+              <option value="BSMT">BSMT ({departmentCounts['BSMT'] ?? 0})</option>
+              <option value="BSIT">BSIT ({departmentCounts['BSIT'] ?? 0})</option>
+              <option value="BSBA">BSBA ({departmentCounts['BSBA'] ?? 0})</option>
+              <option value="BSHM">BSHM ({departmentCounts['BSHM'] ?? 0})</option>
+              <option value="BSTM">BSTM ({departmentCounts['BSTM'] ?? 0})</option>
+              <option value="BSED">BSED ({departmentCounts['BSED'] ?? 0})</option>
             </select>
           </div>
         </div>

@@ -1,3 +1,4 @@
+/* Apply Tailwind's base styles, components, and utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
