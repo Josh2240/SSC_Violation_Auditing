@@ -47,14 +47,14 @@ async function changeAdminPassword() {
 
     // Update admin user
     const [result] = await connection.execute(
-      `UPDATE users SET password_hash = ? WHERE username = 'admin'`,
+      `UPDATE users SET password_hash = ? WHERE username = 'SupremeStudentCouncil'`,
       [passwordHash]
     );
 
     if (result.affectedRows > 0) {
       console.log('✅ Admin password updated successfully!');
       console.log('New credentials:');
-      console.log('  Username: admin');
+      console.log('  Username: SupremeStudentCouncil');
       console.log('  Password: [the password you just set]');
     } else {
       console.error('❌ Admin user not found. Run setup-admin.js first.');

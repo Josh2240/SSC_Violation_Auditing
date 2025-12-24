@@ -46,7 +46,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 node scripts/setup-admin.js
 ```
 
-This will create/update the admin user with default password: `Admin@2024`
+This will create/update the admin user with default password: `ssc2526` (or the value set in `ADMIN_DEFAULT_PASSWORD` in your `.env`)
 
 To change the password later, run:
 ```bash
@@ -64,8 +64,8 @@ npm run dev
 Open your browser and go to: **http://localhost:3000**
 
 Login with:
-- **Username:** `admin`
-- **Password:** `Admin@2024` (default, or check your `.env` file for `ADMIN_DEFAULT_PASSWORD`)
+- **Username:** `SupremeStudentCouncil`
+- **Password:** `ssc2526` (default, or check your `.env` file for `ADMIN_DEFAULT_PASSWORD`) 
 
 ## First Steps After Login
 

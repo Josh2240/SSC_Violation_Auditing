@@ -102,8 +102,8 @@ The application will be available at `http://localhost:3000`
 
 ## Default Login Credentials
 
-- **Username:** `admin`
-- **Password:** `admin123` (or set via `ADMIN_DEFAULT_PASSWORD` in `.env`)
+- **Username:** `SupremeStudentCouncil`
+- **Password:** `ssc2526` (default, or set via `ADMIN_DEFAULT_PASSWORD` in `.env`)
 
 **⚠️ IMPORTANT:** Change the default password immediately after first login!
 

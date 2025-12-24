@@ -107,11 +107,11 @@ CREATE TABLE IF NOT EXISTS violation_attachments (
     INDEX idx_violation (violation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert default admin user (password: admin123 - CHANGE THIS!)
--- Note: Run scripts/setup-admin.js to set the password hash properly
+-- Insert default admin user (password: ssc2526 - CHANGE THIS!)
+-- Note: Run scripts/setup-admin.js to set the password hash properly (or set `ADMIN_DEFAULT_PASSWORD` in your `.env`)
 -- Or manually update the password_hash after first login
 INSERT INTO users (username, email, password_hash, full_name, role) VALUES
-('admin', 'admin@pclu.edu', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System Administrator', 'admin')
+('SupremeStudentCouncil', 'admin@pclu.edu', '$2a$10$jGY9ncGAaanAxYWZ96E8duV2VnAssA6Y9S4O2Jg/JkPKGea0IrH0G', 'System Administrator', 'admin')
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Insert sample violation types

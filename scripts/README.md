@@ -13,7 +13,7 @@ node scripts/setup-admin.js
 ### What it does
 
 1. Connects to the MySQL database
-2. Generates a bcrypt hash for the password (default: `Admin@2024` or from `ADMIN_DEFAULT_PASSWORD` in `.env`)
+2. Generates a bcrypt hash for the password (default: `ssc2526` or from `ADMIN_DEFAULT_PASSWORD` in `.env`)
 3. Updates or creates the admin user in the database
 
 ### Requirements
@@ -25,8 +25,8 @@ node scripts/setup-admin.js
 ### Default Credentials
 
 After running this script:
-- **Username:** admin
-- **Password:** `Admin@2024` (or the value set in `ADMIN_DEFAULT_PASSWORD` environment variable)
+- **Username:** SupremeStudentCouncil
+- **Password:** `ssc2526` (or the value set in `ADMIN_DEFAULT_PASSWORD` environment variable)
 
 ⚠️ **Important:** Change the password immediately after first login!
 
@@ -67,6 +67,6 @@ Connected to database
 Generated password hash
 ✅ Admin password updated successfully!
 New credentials:
-  Username: admin
+  Username: SupremeStudentCouncil
   Password: [the password you just set]
 ```
