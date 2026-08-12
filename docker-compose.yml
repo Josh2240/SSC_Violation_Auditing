@@ -1,0 +1,52 @@
+services:
+  app:
+    build: .
+    container_name: student_violation_app
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: student_violation_db
+      DB_USER: root
+      DB_PASSWORD: root
+      JWT_SECRET: change-this-to-a-long-random-secret
+
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+
+    container_name: student_violation_db
+
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: student_violation_db
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/update_violation_types.sql:/docker-entrypoint-initdb.d/02-update.sql
+      - ./database/add_offense_count.sql:/docker-entrypoint-initdb.d/03-offense.sql
+      - ./database/fix_student_id_optional.sql:/docker-entrypoint-initdb.d/04-fix.sql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:
